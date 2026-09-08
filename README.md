@@ -13,8 +13,8 @@ built with its own automated test suite.
 - CI with GitHub Actions
 
 ## Roadmap
-- [ ] Basic Express server with a health endpoint
-- [ ] Integrate first public API
+- [X] Basic Express server with a health endpoint
+- [X] Integrate first public API
 - [ ] Chain second API
 - [ ] Automated tests
 - [ ] GitHub Actions pipeline
