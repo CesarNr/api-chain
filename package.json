@@ -1,0 +1,24 @@
+{
+  "name": "api-chain",
+  "version": "1.0.0",
+  "description": "A small Node.js service that chains public APIs: calls one, validates the response, and feeds data into the next — a mini service orchestrator, built with its own automated test suite.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CesarNr/api-chain.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CesarNr/api-chain/issues"
+  },
+  "homepage": "https://github.com/CesarNr/api-chain#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
