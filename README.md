@@ -15,6 +15,7 @@ built with its own automated test suite.
 ## Roadmap
 - [X] Basic Express server with a health endpoint
 - [X] Integrate first public API
-- [ ] Chain second API
+- [X] Migrate to Frankfurter v2 for wider currency coverage
+- [X] Chain second API
 - [ ] Automated tests
 - [ ] GitHub Actions pipeline
