@@ -27,6 +27,8 @@ async function loadCurrencies() {
   }
 }
 
+const currenciesReady = loadCurrencies();
+
 const isSupported = (code) => 
   typeof code === "string" &&
     supportedCurrencies !== null &&
@@ -133,8 +135,13 @@ app.get("/trip", async (req,res) => {
   }
 });
 
-loadCurrencies();
+// Export the app for testing; start the server only when run as a script.
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`api-chain listening on http://localhost:${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`api-chain listening on http://localhost:${PORT}`);
-});
+module.exports = { app, currenciesReady };
+
+

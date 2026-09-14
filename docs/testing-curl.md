@@ -34,3 +34,6 @@ curl -i "http://localhost:3000/exchange?from=XXX&to=EUR"
 
 # Trip with input
 curl -s "http://localhost:3000/trip?from=USD&to=COP&lat=4.71&lon=-74.07" | jq
+
+# App imported, not listening: function
+node -e "const {app} = require('./server'); console.log('App imported, not listening:', typeof app.listen)"
