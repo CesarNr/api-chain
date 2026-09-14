@@ -2,16 +2,16 @@
   "name": "api-chain",
   "version": "1.0.0",
   "description": "A small Node.js service that chains public APIs: calls one, validates the response, and feeds data into the next — a mini service orchestrator, built with its own automated test suite.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CesarNr/api-chain.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["nodejs", "express", "api-testing", "automation", "qa", "rest-api", "portfolio"],
+  "author": "CesarNr",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
@@ -20,5 +20,8 @@
   "homepage": "https://github.com/CesarNr/api-chain#readme",
   "dependencies": {
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "supertest": "^7.2.2"
   }
 }
