@@ -95,10 +95,19 @@ discovery, its symptom, root cause and the action taken (or proposed).
   expected behavior.
 
 ---
+## 2026-09-15
+
+### 7. Missing destructuring in test imports of `app` - FIXED
+- **Severity**: Minor (Automation blocker)
+- **Found while**: running `npm test`
+- **Details**: `server.js` exports a package via `module.exports = { app, currenciesReady }`. However, `tests/exchange.test.js` and `tests/health.test.js` imported it as `const app = require('../server')`, which receives the whole wrapper object instead of the Express app. Supertest failed with `TypeError: app.address is not a function`.
+- **Actions**: Updated both test files to `const { app, currenciesReady } = require('../server')` and added `beforeAll(async () => { await currenciesReady; })` to prevent the catalog race condition.
+
+---
 
 ## Design findings / technical debt (backlog)
 
-### 7. No retry or refresh mechanism for the startup catalog
+### 1. No retry or refresh mechanism for the startup catalog
 
 - `loadCurrencies()` runs once at startup. If the provider is down at
   boot, `supportedCurrencies` stays `null` forever, degrading the whole
@@ -106,7 +115,7 @@ discovery, its symptom, root cause and the action taken (or proposed).
 - **Proposed action:** Add periodic refresh or lazy reload with retry /
   exponential backoff.
 
-### 8. Misleading 400 message when catalog is unavailable
+### 2. Misleading 400 message when catalog is unavailable
 
 - When the catalog fails to load, `isSupported()` returns `false` for
   every code, and `/exchange` responds `400 "Unsupported currency
@@ -115,7 +124,7 @@ discovery, its symptom, root cause and the action taken (or proposed).
 - **Proposed action:** Distinguish `503` (service degraded, catalog
   unavailable) from `400` (invalid user input) at the endpoint level.
 
-### 9. No explicit timeout on upstream calls
+### 3. No explicit timeout on upstream calls
 
 - Node's native `fetch` has no general request timeout by default; a
   hung upstream can stall a request indefinitely.
