@@ -1,39 +1,91 @@
-# ¿type of structure?
+# Frankfurter curl tests 
+¿type of structure?
+```bash
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq 'type'
+```
 
-# First element of the array:
+First element of the array:
+```bash
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq '.[0]'
+```
 
-# return all keys:
+Return all keys:
+```bash
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq '.[0] | keys'
+```
 
-# is USD in the array?:
+Is USD in the array?:
+```bash
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq '[.[] | select(.iso_code == "USD")] | length'
+```
 
-# How many currencies:
+How many currencies:
+```bash
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq 'length'
+```
 
-
-# only HTTP :
-curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/health
-
-# Weather
+# open-meteo curl test
+EUR coordinate - happy path
+``` bash
 curl -s 'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperaterature_2m,weather_code'
+```
 
-# Health
+
+# API-chain curl tests
+
+Only HTTP
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/health
+```
+
+Health jq
+``` bash
 curl -s http://localhost:3000/health | jq
+```
 
-# Exchange standart input
+Should return 200 with valid currencies
+```bash
 curl -s "http://localhost:3000/exchange?from=USD&to=EUR" | jq
+```
 
-# Exchange another input
+Should return 200 with valid currencies COP
+```bash
 curl -s "http://localhost:3000/exchange?from=USD&to=COP" | jq
+```
 
-# Exchange with bad input
+Should return 400 - Verify response headers and status -i
+```bash
 curl -i "http://localhost:3000/exchange?from=XXX&to=EUR"
+```
 
-# Trip with input
-curl -s "http://localhost:3000/trip?from=USD&to=COP&lat=4.71&lon=-74.07" | jq
+Trip with input
+```bash
+curl -s "http://localhost:3000/trip?from=USD&to=COP&lat=4.60&lon=-74.08" | jq
+
+```
 
 # App imported, not listening: function
+```bash
 node -e "const {app} = require('./server'); console.log('App imported, not listening:', typeof app.listen)"
+```
+
+
+
+# Automated Tests
+These tests mirror the manual curls but run automatically on every commit.
+
+Run the full test suite:
+```bash
+npm test
+```
+
+Watch mode for rapid development:
+```bash
+npm test -- --watch
+```
+
+Single test file:
+```bash
+npm test tests/exchange.test.js
+```
+
