@@ -1,4 +1,5 @@
 # api-chain 🔗
+  [![CI](https://github.com/CesarNr/api-chain/actions/workflows/ci.yml/badge.svg)](https://github.com/CesarNr/api-chain/actions/workflows/ci.yml)
 
 A small Node.js service that chains public APIs: calls one, validates the
 response, and feeds data into the next — a mini service orchestrator,
@@ -147,4 +148,7 @@ See [docs/testing-curl.md](docs/testing-curl.md) for the full curl battery cover
 - [X] Migrate to Frankfurter v2 for wider currency coverage
 - [X] Chain second API
 - [X] Automated tests
-- [ ] GitHub Actions pipeline
+- [X] GitHub Actions pipeline
+- [ ] Extend test coverage to /trip endpoint
+- [ ] Expose /currencies endpoint for input discovery
+- [ ] Add upstream timeouts (AbortSignal)
