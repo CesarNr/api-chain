@@ -104,7 +104,16 @@ discovery, its symptom, root cause and the action taken (or proposed).
 - **Actions**: Updated both test files to `const { app, currenciesReady } = require('../server')` and added `beforeAll(async () => { await currenciesReady; })` to prevent the catalog race condition.
 
 ---
+## 2026-09-21
 
+### 8. Missing errors validation for /trip endpoint - PLANNED
+- **Severity**: Medium (User Experience)
+- **Found while**: Designing test cases for /trip automation
+- **Details**: Unlike `/exchange` which validates currency codes against the catalog, `/trip` lacks explicit error handling for invalid coordinates or missing parameters. Current implementation may return generic errors instead of informative 400 responses.
+- **Risk**: Poor developer experience for API consumers; harder debugging for clients
+- **Action planned**: Implement coordinate range validation (lat: -90 to 90, lon: -180 to 180) and empty parameter checks before API calls.
+
+---
 ## Design findings / technical debt (backlog)
 
 ### 1. No retry or refresh mechanism for the startup catalog
