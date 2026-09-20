@@ -150,5 +150,6 @@ See [docs/testing-curl.md](docs/testing-curl.md) for the full curl battery cover
 - [X] Automated tests
 - [X] GitHub Actions pipeline
 - [ ] Extend test coverage to /trip endpoint
+- [ ] Add input validation & error handling for /trip endpoint
 - [ ] Expose /currencies endpoint for input discovery
 - [ ] Add upstream timeouts (AbortSignal)
