@@ -113,6 +113,41 @@ discovery, its symptom, root cause and the action taken (or proposed).
 - **Risk**: Poor developer experience for API consumers; harder debugging for clients
 - **Action planned**: Implement coordinate range validation (lat: -90 to 90, lon: -180 to 180) and empty parameter checks before API calls.
 
+### 9. Upstream returns 200 OK with empty body for empty coordinates - DOCUMENTED
+- **Severity**: High (feeds /trip validation gap, finding #8)
+- **Found while**: Exploring Open-Meteo behavior during /trip test design
+- **Details**: Sending `latitude=&longitude=` (present but empty params) to Open-Meteo
+  returns `HTTP 200 OK` with `Content-Type: application/json` but a completely
+  empty body (0 bytes, verified with `wc -c`). This is a silent failure: clients
+  checking only the status code would assume success.
+- **Impact on api-chain**: If /trip forwards empty coordinates without validation,
+  the server receives a 200 with no JSON, causing downstream parse errors
+  (confusing 500s) far from the actual cause.
+- **Actions**: Feeds the /trip input validation roadmap item; empty-parameter
+  rejection must happen in api-chain before calling the upstream.
+
+### 10. Upstream rejects special characters at WAF level; automation scoped to representative cases - DECISION
+- **Severity**: Low (exploratory finding / test design decision)
+- **Found while**: Exploring Open-Meteo behavior with malformed query parameters during /trip test design
+- **Details**: During exploratory testing of the weather upstream, several special characters
+  were sent in the latitude/longitude query parameters:
+  - `""` (double quotes) → HTTP 403 Forbidden served by nginx (HTML body, not JSON)
+  - `?`, `/`, ` `, `*`, `%` → other invalid characters catalogued during exploration
+  The 403 comes from the upstream's reverse proxy / WAF layer, meaning the request
+  never reaches the Open-Meteo application itself. This confirms the defense exists
+  at the infrastructure level, outside api-chain's control.
+- **Decision**: Input validation at this level is important, but automating an
+  exhaustive battery of special-character cases would produce an oversized,
+  low-value automated suite (fragile, slow, and testing mostly the upstream's WAF
+  behavior rather than api-chain's own contract). Scope was therefore reduced to:
+  1. Automate ONE representative case — double quotes (`lat=""` / `lon=""`) — to keep
+     regression control over the rejection behavior of this class.
+  2. Add proper input validation in server.js for /trip (reject non-numeric and
+     out-of-range coordinates with 400 + descriptive error) so api-chain does not
+     depend on the upstream's WAF to reject malformed input.
+
+
+
 ---
 ## Design findings / technical debt (backlog)
 
