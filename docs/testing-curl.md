@@ -1,4 +1,4 @@
-# Frankfurter curl tests 
+## Frankfurter curl tests 
 ¿type of structure?
 ```bash
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq 'type'
@@ -24,11 +24,54 @@ How many currencies:
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq 'length'
 ```
 
-# open-meteo curl test
-EUR coordinate - happy path
+
+
+## open-meteo curl test
+Happy path - valid coordinates
 ``` bash
-curl -s 'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&current=temperaterature_2m,weather_code'
+curl -s 'https://api.open-meteo.com/v1/forecast?latitude=-16.5&longitude=-68.15&current=temperature_2m,weather_code' | jq
 ```
+
+Out-of-range latitude - Boundary
+```bash
+curl -s 'https://api.open-meteo.com/v1/forecast?latitude=200&longitude=-68.15&current=temperature_2m,weather_code' | jq
+```
+
+Response:
+``` bash
+{
+  "reason": "Latitude must be in range of -90 to 90°. Given: 200.0.",
+  "error": true
+}
+```
+
+Out-of-range longitude - Boundary
+```bash
+curl -s 'https://api.open-meteo.com/v1/forecast?latitude=-16.5&longitude=200&current=temperature_2m,weather_code' | jq
+```
+
+Response:
+```bash
+{
+  "reason": "Longitude must be in range of -180 to 180°. Given: -200.0.",
+  "error": true
+}
+```
+
+Empty coordinates
+```bash
+curl -i 'https://api.open-meteo.com/v1/forecast?latitude=&longitude=&current=temperature_2m'
+```
+
+Response (silent failure):
+```bash
+HTTP/1.1 200 OK
+Date: Sun, 20 Sep 2026 19:17:23 GMT
+Content-Type: application/json; charset=utf-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+```
+
 
 
 # API-chain curl tests
