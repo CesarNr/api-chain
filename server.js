@@ -34,6 +34,9 @@ const isSupported = (code) =>
     supportedCurrencies !== null &&
     supportedCurrencies.includes(code.toUpperCase());
 
+const isValidCurrency = (code) => /^[a-zA-Z]{3}$/.test(code);
+const isValidCoord = (value) => /^-?\d+(\.\d+)?$/.test(value);
+
 app.get("/health", async (req, res) => {
   const checks= { currencyCatalogLoaded: supportedCurrencies !== null };
 
@@ -54,11 +57,28 @@ app.get("/health", async (req, res) => {
 
 app.get("/exchange", async (req, res) => {
   const { from = "USD", to = "EUR" } = req.query;
-  
-  if (!isSupported(from) || !isSupported(to)) {
-    return res.status(400).json({
-      error: `Unsupported currency code. Supported codes: ${supportedCurrencies.slice(0, 10).join(", ")}...`,
-    });
+
+    const params = { from, to};
+  for (const [name, value] of Object.entries(params)) {
+    if (value === "") {
+      return res.status(400).json({ error: `Parameter '${name}' must not be empty` });
+    }
+  }
+
+  if ( !isValidCurrency(from) ) {
+    return res.status(400).json({ error: `Invalid value in 'from': '${from}'. Must be a 3-letter code (e.g. USD)`});
+  }
+
+  if (!isSupported(from)) {
+    return res.status(400).json({ error: `Unsupported currency code in 'from': '${from}'  (e.g. USD, COP, EUR)` });
+  }
+
+  if ( !isValidCurrency(to) ) {
+    return res.status(400).json({ error: `Invalid value in 'to': '${to}'. Must be a 3-letter code (e.g. COP)`});
+  }
+
+  if (!isSupported(to)) {
+    return res.status(400).json({ error: `Unsupported currency code in 'to': '${to}' (e.g. USD, COP, EUR)` });
   }
 
   try {
@@ -93,10 +113,48 @@ app.get("/exchange", async (req, res) => {
  * weather at the given coordinates.
  */
 app.get("/trip", async (req,res) => {
+  
   const { from = "USD", to = "EUR", lat = "52.52", lon = "13.41" } = req.query;
 
-  if (!isSupported(from) || !isSupported(to)) {
-    return res.status(400).json({ error: "Unsupported currency code" });
+  const params = { from, to, lat, lon };
+  for (const [name, value] of Object.entries(params)) {
+    if (value === "") {
+      return res.status(400).json({ error: `Parameter '${name}' must not be empty` });
+    }
+  }
+
+  if ( !isValidCurrency(from) ) {
+    return res.status(400).json({ error: `Invalid value in 'from': '${from}'. Must be a 3-letter code (e.g. USD)`});
+  }
+
+  if (!isSupported(from)) {
+    return res.status(400).json({ error: `Unsupported currency code in 'from': ${from}` });
+  }
+
+  if ( !isValidCurrency(to) ) {
+    return res.status(400).json({ error: `Invalid value in 'to': '${to}'. Must be a 3-letter code (e.g. COP)`});
+  }
+
+  if (!isSupported(to)) {
+    return res.status(400).json({ error: `Unsupported currency code in 'to': ${to}` });
+  }
+  latNum = Number(lat);
+  lonNum = Number(lon);
+
+  if ( !isValidCoord(latNum) ) {
+    return res.status(400).json({ error: `Invalid latitude: '${lat}'. Must be a number (e.g. 4.60).`});
+  }
+
+  if ( latNum < -90 || latNum > 90 ) {
+    return res.status(400).json({ error: `Latitude: ${latNum} is out of bounds. Latitud ranges from -90 to +90 degrees (e.g. 4.60).`})
+  }
+
+  if ( !isValidCoord(lonNum) ) {
+    return res.status(400).json({ error: `Invalid longitude: '${lon}'. Must be a number (e.g. -74.08).`});
+  }
+
+  if ( lon < -180 || lon > 180 ) {
+    return res.status(400).json({ error: `Longitude: ${lonNum} is out of bounds. Longitude ranges from -180 to +180 degrees (e.g. -74.08). `})
   }
 
   try {
