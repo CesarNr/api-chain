@@ -106,7 +106,7 @@ discovery, its symptom, root cause and the action taken (or proposed).
 ---
 ## 2026-09-21
 
-### 8. Missing errors validation for /trip endpoint - PLANNED
+### 8. Missing errors validation for /trip endpoint - FIXED
 - **Severity**: Medium (User Experience)
 - **Found while**: Designing test cases for /trip automation
 - **Details**: Unlike `/exchange` which validates currency codes against the catalog, `/trip` lacks explicit error handling for invalid coordinates or missing parameters. Current implementation may return generic errors instead of informative 400 responses.
@@ -146,7 +146,27 @@ discovery, its symptom, root cause and the action taken (or proposed).
      out-of-range coordinates with 400 + descriptive error) so api-chain does not
      depend on the upstream's WAF to reject malformed input.
 
+---
+## 2026-09-23
 
+### 11. /trip validation design: blocklist vs allowlist trade-off - DECISION
+- **Severity**: Info
+- **Found while**: Implementing input validation for /trip (closes finding #8 gap)
+- **Details**: Initial approach checked negative conditions per parameter (empty values,
+  special characters via blocklist regex), producing a long chain of guard clauses.
+  Two issues emerged:
+  1. Blocklists are incomplete by definition: symbols like #, " or } were not caught,
+     and every exploratory test required growing the character list.
+  2. Granular checks caused near-duplicate guard clauses for from/to/lat/lon.
+- **Decision**: Adopt format allowlists (regex) that positively declare the expected
+  shape of each parameter (3-letter currency codes, signed decimal coordinates),
+  replacing the blocklist and the type checks. The explicit empty-parameter check is
+  KEPT as a separate validation: distinguishing "you sent nothing" from "you sent
+  something malformed" is valuable feedback for the consumer. Error messages
+  interpolate the received value and state the expected format, balancing UX
+  (actionable error responses) with clean code (fewer, declarative validations).
+- **Actions**: Implemented in server.js /trip; automated coverage pending in
+  tests/trip.test.js per test plan scenarios.
 
 ---
 ## Design findings / technical debt (backlog)
