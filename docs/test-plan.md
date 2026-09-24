@@ -20,7 +20,7 @@
 
 | Scenario | Input | Expected Result | Status |
 |----------|-------|-----------------|--------|
-| Happy path - Valid coordinates | USD, EUR, lat=-16.5, lon=-68.15 | 200 + rate + temp | 🔴 TODO |
+| Happy path - Valid coordinates | USD, EUR, lat=-16.5, lon=-68.15 | 200 + rate + temp | 🟢 Covered  |
 | Invalid currency | XXX, EUR, lat=..., lon=... | 400 + error | 🔴 TODO |
 | Empty currency | from=, to=EUR | 400 + error | 🔴 TODO |
 | Out-of-range latitude - Boundary | lat=200, lon=... | 400 + error | 🔴 TODO |
