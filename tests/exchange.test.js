@@ -6,7 +6,7 @@ describe('GET /exchange', () => {
   beforeAll (async () => {
     await currenciesReady;
   });
-  
+ 
   it('should return 200 with valid currencies', async () => {
     const res = await request(app)
       .get('/exchange')
