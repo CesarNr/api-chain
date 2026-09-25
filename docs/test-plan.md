@@ -21,8 +21,9 @@
 | Scenario | Input | Expected Result | Status |
 |----------|-------|-----------------|--------|
 | Happy path - Valid coordinates | USD, EUR, lat=-16.5, lon=-68.15 | 200 + rate + temp | 🟢 Covered  |
-| Invalid currency | XXX, EUR, lat=..., lon=... | 400 + error | 🔴 TODO |
-| Empty currency | from=, to=EUR | 400 + error | 🔴 TODO |
+| Default values when no parameters given | Default | 200 + rate + temp | 🟢 Covered |
+| Invalid currency | QwE, EUR, lat=..., lon=... | 400 + error | 🟢 Covered |
+| Empty currency | from=, to=EUR | 400 + error | 🟢 Covered |
 | Out-of-range latitude - Boundary | lat=200, lon=... | 400 + error | 🔴 TODO |
 | Out-of-range longitude - Boundary | lat=..., lon=200 | 400 + error | 🔴 TODO |
 | Empty coordinate - Presence | lat=, lon=90 |400 + error | 🔴 TODO |

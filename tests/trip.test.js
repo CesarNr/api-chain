@@ -31,7 +31,8 @@ describe('GET /trip', () => {
   });
 
   it('should apply defaults when no parameters given', async () => {
-    const res = await request(app).get('/trip');
+    const res = await request(app)
+      .get('/trip');
 
     expect(res.statusCode).toBe(200);
 
@@ -40,4 +41,23 @@ describe('GET /trip', () => {
     expect(res.body.trip.lat).toBe(52.52);
     expect(res.body.trip.lon).toBe(13.41);
   });
+
+  it('should return 400 with invalid currency from', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'QwE', to: 'EUR', lat: '7.12', lon: '-73.11' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain('Unsupported currency code in 'from': QwE');
+  });
+
+  it('should return 400 with empty currency to', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'USD', to: '', lat: '7.12', lon: '-73.11' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain('Parameter 'to' must not be empty');
+  });
+
 });
