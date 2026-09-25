@@ -101,11 +101,20 @@ Should return 400 - Verify response headers and status -i
 curl -i "http://localhost:3000/exchange?from=XXX&to=EUR"
 ```
 
-Trip with input
+### Trip Manual test
+Trip | 200 manual input
 ```bash
 curl -s "http://localhost:3000/trip?from=USD&to=COP&lat=4.60&lon=-74.08" | jq
-
 ```
+Trip | default values
+curl -s "http://localhost:3000/trip | jq
+
+Trip | 400 | Invalid currency from
+curl -s "http://localhost:3000/trip?from=AsD&to=COP&lat=4.60&lon=-74.08" | jq
+
+Trip | 400 | Empty currency to
+curl -s "http://localhost:3000/trip?from=USD&to=&lat=4.60&lon=-74.08" | jq
+
 
 # App imported, not listening: function
 ```bash
