@@ -48,7 +48,7 @@ describe('GET /trip', () => {
       .query({ from: 'QwE', to: 'EUR', lat: '7.12', lon: '-73.11' });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.error).toContain('Unsupported currency code in 'from': QwE');
+    expect(res.body.error).toContain("Unsupported currency code in 'from': QwE");
   });
 
   it('should return 400 with empty currency to', async () => {
@@ -57,7 +57,7 @@ describe('GET /trip', () => {
       .query({ from: 'USD', to: '', lat: '7.12', lon: '-73.11' });
 
     expect(res.statusCode).toBe(400);
-    expect(res.body.error).toContain('Parameter 'to' must not be empty');
+    expect(res.body.error).toContain("Parameter 'to' must not be empty");
   });
 
 });
