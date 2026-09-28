@@ -106,6 +106,7 @@ Trip | 200 manual input
 ```bash
 curl -s "http://localhost:3000/trip?from=USD&to=COP&lat=4.60&lon=-74.08" | jq
 ```
+
 Trip | default values
 curl -s "http://localhost:3000/trip | jq
 
@@ -114,6 +115,12 @@ curl -s "http://localhost:3000/trip?from=AsD&to=COP&lat=4.60&lon=-74.08" | jq
 
 Trip | 400 | Empty currency to
 curl -s "http://localhost:3000/trip?from=USD&to=&lat=4.60&lon=-74.08" | jq
+
+Trip | 400 | Out-of-range latitude
+curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-90.01&lon=-73.11" | jq
+
+Trip | 400 | Out-of-range lon
+curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=-181" | jq
 
 
 # App imported, not listening: function

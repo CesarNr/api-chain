@@ -60,4 +60,22 @@ describe('GET /trip', () => {
     expect(res.body.error).toContain("Parameter 'to' must not be empty");
   });
 
+  it('should return 400 with Out-of-range lat', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'AUD', to: 'PEN', lat: '-90.01', lon: '-77.02' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Latitude: -90.01 is out of bounds");
+  });
+
+  it('should return 400 with Out-of-range lon', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'AUD', to: 'PEN', lat: '-12.04', lon: '-181' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Longitude: -181 is out of bounds");
+  });
+
 });

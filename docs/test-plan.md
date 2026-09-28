@@ -24,8 +24,8 @@
 | Default values when no parameters given | Default | 200 + rate + temp | 🟢 Covered |
 | Invalid currency | QwE, EUR, lat=..., lon=... | 400 + error | 🟢 Covered |
 | Empty currency | from=, to=EUR | 400 + error | 🟢 Covered |
-| Out-of-range latitude - Boundary | lat=200, lon=... | 400 + error | 🔴 TODO |
-| Out-of-range longitude - Boundary | lat=..., lon=200 | 400 + error | 🔴 TODO |
+| Out-of-range latitude - Boundary | lat=200, lon=... | 400 + error | 🟢 Covered |
+| Out-of-range longitude - Boundary | lat=..., lon=200 | 400 + error | 🟢 Covered |
 | Empty coordinate - Presence | lat=, lon=90 |400 + error | 🔴 TODO |
 | Non-numeric latitude - Type | lat=ABC, lon=-64.15 | 400 + error | 🔴 TODO |
 | Non-numeric longitude - Type | lat=-16.5, lon=XXX | 400 + error | 🔴 TODO |
