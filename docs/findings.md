@@ -128,23 +128,14 @@ discovery, its symptom, root cause and the action taken (or proposed).
 
 ### 10. Upstream rejects special characters at WAF level; automation scoped to representative cases - DECISION
 - **Severity**: Low (exploratory finding / test design decision)
-- **Found while**: Exploring Open-Meteo behavior with malformed query parameters during /trip test design
-- **Details**: During exploratory testing of the weather upstream, several special characters
-  were sent in the latitude/longitude query parameters:
-  - `""` (double quotes) → HTTP 403 Forbidden served by nginx (HTML body, not JSON)
-  - `?`, `/`, ` `, `*`, `%` → other invalid characters catalogued during exploration
-  The 403 comes from the upstream's reverse proxy / WAF layer, meaning the request
-  never reaches the Open-Meteo application itself. This confirms the defense exists
-  at the infrastructure level, outside api-chain's control.
-- **Decision**: Input validation at this level is important, but automating an
-  exhaustive battery of special-character cases would produce an oversized,
-  low-value automated suite (fragile, slow, and testing mostly the upstream's WAF
-  behavior rather than api-chain's own contract). Scope was therefore reduced to:
-  1. Automate ONE representative case — double quotes (`lat=""` / `lon=""`) — to keep
-     regression control over the rejection behavior of this class.
-  2. Add proper input validation in server.js for /trip (reject non-numeric and
-     out-of-range coordinates with 400 + descriptive error) so api-chain does not
-     depend on the upstream's WAF to reject malformed input.
+- **Found while**: Exploring Open-Meteo behavior with malformed query parameters during /trip test design.
+- **Details**: During exploratory testing of the weather upstream, several special characters were sent in the latitude/longitude query parameters:
+  - `""` (double quotes) → HTTP 403 Forbidden served by nginx (HTML body, not JSON).
+  - `?`, `/`, ` `, `*`, `%` → other invalid characters catalogued during exploration.
+  The 403 comes from the upstream's reverse proxy / WAF layer, meaning the request never reaches the Open-Meteo application itself. This confirms the defense exists at the infrastructure level, outside api-chain's control.
+- **Decision**: Input validation at this level is important, but automating an exhaustive battery of special-character cases would produce an oversized, low-value automated suite (fragile, slow, and testing mostly the upstream's WAF behavior rather than api-chain's own contract). Scope was therefore reduced to:
+  1. Automate ONE representative case — double quotes (`lat=""` / `lon=""`) — to keep regression control over the rejection behavior of this class.
+  2. Add proper input validation in server.js for /trip (reject non-numeric and out-of-range coordinates with 400 + descriptive error) so api-chain does not depend on the upstream's WAF to reject malformed input.
 
 ---
 ## 2026-09-23
@@ -152,21 +143,26 @@ discovery, its symptom, root cause and the action taken (or proposed).
 ### 11. /trip validation design: blocklist vs allowlist trade-off - DECISION
 - **Severity**: Info
 - **Found while**: Implementing input validation for /trip (closes finding #8 gap)
-- **Details**: Initial approach checked negative conditions per parameter (empty values,
-  special characters via blocklist regex), producing a long chain of guard clauses.
-  Two issues emerged:
-  1. Blocklists are incomplete by definition: symbols like #, " or } were not caught,
-     and every exploratory test required growing the character list.
+- **Details**: Initial approach checked negative conditions per parameter (empty values, special characters via blocklist regex), producing a long chain of guard clauses. Two issues emerged:
+  1. Blocklists are incomplete by definition: symbols like #, " or } were not caught, and every exploratory test required growing the character list.
   2. Granular checks caused near-duplicate guard clauses for from/to/lat/lon.
-- **Decision**: Adopt format allowlists (regex) that positively declare the expected
-  shape of each parameter (3-letter currency codes, signed decimal coordinates),
-  replacing the blocklist and the type checks. The explicit empty-parameter check is
-  KEPT as a separate validation: distinguishing "you sent nothing" from "you sent
-  something malformed" is valuable feedback for the consumer. Error messages
-  interpolate the received value and state the expected format, balancing UX
-  (actionable error responses) with clean code (fewer, declarative validations).
-- **Actions**: Implemented in server.js /trip; automated coverage pending in
-  tests/trip.test.js per test plan scenarios.
+- **Decision**: Adopt format allowlists (regex) that positively declare the expected shape of each parameter (3-letter currency codes, signed decimal coordinates), replacing the blocklist and the type checks. The explicit empty-parameter check is KEPT as a separate validation: distinguishing "you sent nothing" from "you sent something malformed" is valuable feedback for the consumer. Error messages interpolate the received value and state the expected format, balancing UX (actionable error responses) with clean code (fewer, declarative validations).
+- **Actions**: Implemented in server.js /trip; automated coverage pending in tests/trip.test.js per test plan scenarios.
+
+
+## 2026-09-29
+
+### 12. Curl vs Jest quote handling — different input representations
+- **Severity**: Info (test behavior documentation)
+- **Found while**: Writing `/trip` invalid chars test cases (`it.each` with special characters)
+- **Details**: When testing quotes (`""`) the same input behaves differently depending on the tool:
+  
+  - **In curl**: shell interprets `""` as string delimiters, so the server sees an *empty* value
+  - **In Jest**: Supertest sends literal quotes via URL encoding (`%22%22`), so the server receives *two quote characters* as the input
+
+  This means my Jest test for invalid chars is actually hitting a *different code path* than the empty-value check — both return 400, but for different reasons. Also noticed the error message shows escaped quotes (`\"\"`) because the template interpolates the value through JSON.stringify (Jest's `%j` placeholder).
+- **Actions**: Update test-plan.md notes to clarify `lat=""` in Jest ≠ `lat=` in curl (shell quoting differs). No code change needed.
+
 
 ---
 ## Design findings / technical debt (backlog)

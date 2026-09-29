@@ -105,4 +105,19 @@ describe('GET /trip', () => {
     expect(res.body.error).toContain("Invalid longitude: 'XXX'. Must be a number");
   });
 
+  it.each([
+    ['double quotes', '""'],
+    ['question mark', '?'],
+    ['slash', '/'],
+    ['asterisk', '*'],
+    ['percent sign', '%'],
+  ])('should reject %s (%j) in longitude', async ( _label, badValue ) => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'AUD', to: 'PEN', lat: '-12.04', lon: badValue });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain(badValue);
+  });
+
 });

@@ -131,6 +131,9 @@ curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=ABC&lon=-77.02" | jq
 Trip | 400 | Non-numeric longitude
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=-XXX" | jq
 
+Trip | 400 | Special chars
+curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=?" | jq
+
 # App imported, not listening: function
 ```bash
 node -e "const {app} = require('./server'); console.log('App imported, not listening:', typeof app.listen)"

@@ -29,7 +29,7 @@
 | Empty coordinate - Presence | lat=, lon=90 |400 + error | 🟢 Covered |
 | Non-numeric latitude - Type | lat=ABC, lon=-64.15 | 400 + error | 🟢 Covered |
 | Non-numeric longitude - Type | lat=-16.5, lon=XXX | 400 + error | 🟢 Covered |
-| Invalid chars | lat="-12.04", lon=" "", ?, /, *, ? " | 400 + error | 🔴 TODO |
+| Invalid chars | lat="-12.04", lon=" "", ?, /, *, ? " | 400 + error | 🟢 Covered |
 | Duplicated lat parameter - Cardinality | lat=-16.5&lat=4.6, lon=-74.08 | 400 + error (reject array-like input) | 🔴 TODO |
 | Partial chain failure - weather upstream down (currency OK) | fetch mocked: weather rejects, rates OK | 502 + error indicating failed stage | 🔴 TODO |
 | Upstream failure | Simulated API fail | 502 + degrade | 🔴 TODO |
