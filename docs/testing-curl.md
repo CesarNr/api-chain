@@ -122,6 +122,14 @@ curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-90.01&lon=-73.11" | jq
 Trip | 400 | Out-of-range lon
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=-181" | jq
 
+Trip | 400 | Empty coordinate lat
+curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=&lon=-77.02" | jq
+
+Trip | 400 | Non-numeric latitude
+curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=ABC&lon=-77.02" | jq
+
+Trip | 400 | Non-numeric longitude
+curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=-XXX" | jq
 
 # App imported, not listening: function
 ```bash

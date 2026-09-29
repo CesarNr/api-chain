@@ -78,4 +78,31 @@ describe('GET /trip', () => {
     expect(res.body.error).toContain("Longitude: -181 is out of bounds");
   });
 
+  it('should return 400 with empty coordinate', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'AUD', to: 'PEN', lat: '', lon: '-77.02' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Parameter 'lat' must not be empty");
+  });
+
+  it('should return 400 with non-numeric Latitude', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'AUD', to: 'PEN', lat: 'ABC', lon: '-77.02' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Invalid latitude: 'ABC'. Must be a number");
+  });
+
+  it('should return 400 with non-numeric Longitude', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'AUD', to: 'PEN', lat: '-12.04', lon: 'XXX' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Invalid longitude: 'XXX'. Must be a number");
+  });
+
 });
