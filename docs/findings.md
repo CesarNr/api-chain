@@ -109,7 +109,7 @@ A running log of defects, limitations and design findings discovered while devel
 - **Decision**: Adopt format allowlists (regex) that positively declare the expected shape of each parameter (3-letter currency codes, signed decimal coordinates), replacing the blocklist and the type checks. The explicit empty-parameter check is KEPT as a separate validation: distinguishing "you sent nothing" from "you sent something malformed" is valuable feedback for the consumer. Error messages interpolate the received value and state the expected format, balancing UX (actionable error responses) with clean code (fewer, declarative validations).
 - **Actions**: Implemented in server.js /trip; automated coverage pending in tests/trip.test.js per test plan scenarios.
 
-
+---
 ## 2026-09-29
 
 ### 12. Curl vs Jest quote handling — different input representations
@@ -121,6 +121,15 @@ A running log of defects, limitations and design findings discovered while devel
   This means my Jest test for invalid chars is actually hitting a *different code path* than the empty-value check — both return 400, but for different reasons. Also noticed the error message shows escaped quotes (`\"\"`) because the template interpolates the value through JSON.stringify (Jest's `%j` placeholder).
 - **Actions**: No code change needed.
 
+---
+## 2026-09-30
+
+### 13. Missing cardinality validation in /exchange and /trip - FIXED
+- **Severity:** Low (incorrect error classification, not a functional failure)
+- **Found while:** Manually testing curls for cardinality checks (sending parameter `to` or `lat` twice in the same request)
+- **Details:** When sending a request with a duplicated parameter like `lat=-12.04&lat=-12.05`, the server responded with "Invalid latitude: '-12.04,-12.05'. Must be a number" instead of explicitly telling the user that the parameter was duplicated. This happened because Express collects repeated query parameters into an array, and the validation was coercing that array to text (`'-12.04,-12.05'`), which obviously fails the number format check. The request was correctly rejected with 400, but for the wrong reason (reported as a format/type error when it was a cardinality violation).
+- **Impact:** Low. Server remained functional and the request was still rejected, but with a misleading error message that gives the consumer the wrong corrective action ("send a number" instead of "send the parameter only once").
+- **Actions:** Added a cardinality check (via `Array.isArray`) in both services as the first validation layer for all four parameters, before presence and format checks. Now duplicated parameters receive a specific error: "Duplicate parameter 'X': expected single value, received N".
 
 ---
 ## Design findings / technical debt (backlog)

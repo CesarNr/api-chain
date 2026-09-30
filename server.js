@@ -57,8 +57,14 @@ app.get("/health", async (req, res) => {
 
 app.get("/exchange", async (req, res) => {
   const { from = "USD", to = "EUR" } = req.query;
-
-    const params = { from, to};
+  // Cardinality check
+  const params = { from, to };
+  for (const [name, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      return res.status(400).json({ error: `Duplicate parameter ${name}: expected single value, received ${value.length}`});
+    }
+  }
+  // Presence check
   for (const [name, value] of Object.entries(params)) {
     if (value === "") {
       return res.status(400).json({ error: `Parameter '${name}' must not be empty` });
@@ -117,6 +123,12 @@ app.get("/trip", async (req,res) => {
   const { from = "USD", to = "EUR", lat = "52.52", lon = "13.41" } = req.query;
 
   const params = { from, to, lat, lon };
+  for (const [name, value] of Object.entries(params)) {
+    if (Array.isArray(value)) {
+      return res.status(400).json({ error: `Duplicate parameter ${name}: expected single value, received ${value.length}`});
+    }
+  }
+
   for (const [name, value] of Object.entries(params)) {
     if (value === "") {
       return res.status(400).json({ error: `Parameter '${name}' must not be empty` });
