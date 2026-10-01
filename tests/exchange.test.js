@@ -45,4 +45,15 @@ describe('GET /exchange', () => {
 
     expect(res.statusCode).toBe(400);
   });
+
+  it('should reject duplicated from parameter', async () => {
+    const res = await request(app)
+      .get('/exchange')
+      .query({ from: [ 'PEN', 'USD' ], to: 'AUD' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Duplicate parameter from: expected single value");
+  });
+
+
 });

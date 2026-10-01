@@ -86,6 +86,14 @@ Health jq
 curl -s http://localhost:3000/health | jq
 ```
 
+
+### Exchange manual test
+
+Trip | 400 | Duplicated 'from' parameter - Cardinality
+``` bash
+curl -s "http://localhost:3000/trip?from=AUD&from=AUD&to=PEN&" | jq
+```
+
 Should return 200 with valid currencies
 ```bash
 curl -s "http://localhost:3000/exchange?from=USD&to=EUR" | jq
@@ -108,31 +116,54 @@ curl -s "http://localhost:3000/trip?from=USD&to=COP&lat=4.60&lon=-74.08" | jq
 ```
 
 Trip | default values
+``` bash
 curl -s "http://localhost:3000/trip | jq
+```
 
 Trip | 400 | Invalid currency from
+```bash
 curl -s "http://localhost:3000/trip?from=AsD&to=COP&lat=4.60&lon=-74.08" | jq
+```
 
 Trip | 400 | Empty currency to
+```bash
 curl -s "http://localhost:3000/trip?from=USD&to=&lat=4.60&lon=-74.08" | jq
+```
 
 Trip | 400 | Out-of-range latitude
+```bash
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-90.01&lon=-73.11" | jq
+```
 
 Trip | 400 | Out-of-range lon
+```bash
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=-181" | jq
+```
 
 Trip | 400 | Empty coordinate lat
+```bash
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=&lon=-77.02" | jq
+```
 
 Trip | 400 | Non-numeric latitude
+```bash
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=ABC&lon=-77.02" | jq
+```
 
 Trip | 400 | Non-numeric longitude
+```bash
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=-XXX" | jq
+```
 
 Trip | 400 | Special chars
+```bash
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lon=?" | jq
+```
+
+Trip | 400 | Cardinality test
+```bash
+curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lat=-12&lon=-77.02" | jq
+```
 
 # App imported, not listening: function
 ```bash

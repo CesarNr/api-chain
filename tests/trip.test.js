@@ -120,4 +120,13 @@ describe('GET /trip', () => {
     expect(res.body.error).toContain(badValue);
   });
 
+  it('should reject duplicated lat parameter', async () => {
+    const res = await request(app)
+      .get('/trip')
+      .query({ from: 'AUD', to: 'PEN', lat: ['-12.04', '4.60'], lon: '-78.52' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toContain("Duplicate parameter lat: expected single value");
+  });
+
 });
