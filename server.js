@@ -92,13 +92,13 @@ app.get("/exchange", async (req, res) => {
       `${FRANKFURTER_BASE}/rates?base=${from.toUpperCase()}&quotes=${to.toUpperCase()}`
     );
     if (!response.ok) {
-    return res.status(502).json({ error: `Currency API responded ${response.status}` });
+      throw new Error(`Currency API responded: ${response.status}`);
     }
 
     // v2 contract: array of quotes; we requested exactly one, take the first
     const quote = (await response.json())[0];
     if (!quote) {
-      return res.status(502).json({ error: "Currency API returned no data" });
+      throw new Error(`Currency API returned no data for ${from.toUpperCase()}/${to.toUpperCase()}` );
     }
 
     res.json({
@@ -108,8 +108,12 @@ app.get("/exchange", async (req, res) => {
       rate: quote.rate,
       source: "frankfurter.dev/v2",
     });
-  } catch {
-    res.status(502).json({ error: "Could not reach currency API" });
+  } catch (err) {
+    res.status(502).json({
+      error: 'Upstream service unavailable',
+      stage: 'exchange',
+      detail: err.message
+    });
   }
 });
 
