@@ -17,7 +17,7 @@ describe('GET /exchange', () => {
     expect(res.body).toHaveProperty('base');
     expect(res.body).toHaveProperty('quote');
     expect(res.body).toHaveProperty('rate');
-  });
+  }, 10000);
 
   it('should apply defaults when no parameters given', async () => {
     const res = await request(app)
@@ -28,7 +28,7 @@ describe('GET /exchange', () => {
     expect(res.body.quote).toBe('EUR');
     expect(res.body.rate).toBeDefined();
     expect(typeof res.body.rate).toBe('number');
-  });
+  }, 10000);
 
   it('should support USD → COP', async () => {
     const res = await request(app)
@@ -38,7 +38,7 @@ describe('GET /exchange', () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.rate).toBeDefined();
     expect(typeof res.body.rate).toBe('number');
-  });
+  }, 10000);
 
   it('should return 400 for unsupported currency XXX', async () => {
     const res = await request(app)

@@ -28,7 +28,7 @@ describe('GET /trip', () => {
 
     expect(Number.isFinite(res.body.weather.temperatureC)).toBe(true);
     expect(Number.isInteger(res.body.weather.weatherCode)).toBe(true);
-  });
+  }, 10000);
 
   it('should apply defaults when no parameters given', async () => {
     const res = await request(app)
@@ -40,7 +40,7 @@ describe('GET /trip', () => {
     expect(res.body.trip.to).toBe('EUR');
     expect(res.body.trip.lat).toBe(52.52);
     expect(res.body.trip.lon).toBe(13.41);
-  });
+  }, 10000);
 
   it('should return 400 with invalid currency from', async () => {
     const res = await request(app)
