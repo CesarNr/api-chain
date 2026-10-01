@@ -19,6 +19,17 @@ describe('GET /exchange', () => {
     expect(res.body).toHaveProperty('rate');
   });
 
+  it('should apply defaults when no parameters given', async () => {
+    const res = await request(app)
+      .get('/exchange');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.base).toBe('USD');
+    expect(res.body.quote).toBe('EUR');
+    expect(res.body.rate).toBeDefined();
+    expect(typeof res.body.rate).toBe('number');
+  });
+
   it('should support USD → COP', async () => {
     const res = await request(app)
       .get('/exchange')
