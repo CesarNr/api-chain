@@ -24,6 +24,10 @@ How many currencies:
 curl -s "https://api.frankfurter.dev/v2/currencies" | jq 'length'
 ```
 
+Happy Path | USD to COP
+``` bash
+curl -s "https://api.frankfurter.dev/v2/rates?base=USD&quotes=COP" | jq
+```
 
 
 ## open-meteo curl test
