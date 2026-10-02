@@ -88,18 +88,10 @@ app.get("/exchange", async (req, res) => {
   }
 
   try {
-    const response = await fetch(
-      `${FRANKFURTER_BASE}/rates?base=${from.toUpperCase()}&quotes=${to.toUpperCase()}`
-    );
-    if (!response.ok) {
-      throw new Error(`Currency API responded: ${response.status}`);
-    }
-
-    // v2 contract: array of quotes; we requested exactly one, take the first
+    const response = await fetch( `${FRANKFURTER_BASE}/rates?base=${from.toUpperCase()}&quotes=${to.toUpperCase()}` );
+    if ( !response.ok ) throw new Error( `Currency API responded: ${response.status}` );
     const quote = (await response.json())[0];
-    if (!quote) {
-      throw new Error(`Currency API returned no data for ${from.toUpperCase()}/${to.toUpperCase()}` );
-    }
+    if ( !quote ) throw new Error( `Currency API returned no data for ${from.toUpperCase()}/${to.toUpperCase()}` );
 
     res.json({
       date: quote.date,
@@ -173,39 +165,41 @@ app.get("/trip", async (req,res) => {
     return res.status(400).json({ error: `Longitude: ${lonNum} is out of bounds. Longitude ranges from -180 to +180 degrees (e.g. -74.08). `})
   }
 
+  const fetchExchangeRate = async (from, to) => {
+    const res = await fetch(`${FRANKFURTER_BASE}/rates?base=${from}&quotes=${to}`);
+    if (!res.ok) throw new Error(`Currency aPI responded: ${res.status}`);
+    const quote = ( await res.json() )[0];
+    if (!quote) throw new Error(`Currency API returned no data`);
+    return quote;
+  };
+
+  const fetchWeather = async (lat, lon) => {
+    const res = await fetch(`${OPEN_METEO_BASE}/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
+    if ( !res.ok ) throw new Error( `Weather API responded: ${res.status}` );
+    const weatherData = await res.json();
+    if ( weatherData?.current?.temperature_2m == null ) throw new Error( `Weather API returned no data` );
+    return weatherData;
+  };
+  
   try {
-    // Leg 1: exchange rate (Frankfurter v2)
-    const fxRes = await fetch(
-      `${FRANKFURTER_BASE}/rates?base=${from.toUpperCase()}&quotes=${to.toUpperCase()}`
-    );
-    if (!fxRes.ok) {
-      return res.status(502).json({ error: "Currency API unavailable." });
-    }
-    const quote = (await fxRes.json())[0];
-    if (!quote) {
-      return res.status(502).json({ error: "Currency API returned no data."});
-    }
+    const quote = await fetchExchangeRate(from, to);
+    const weather = await fetchWeather(lat, lon);
 
-    // Leg 2: current weather at destination (defaults: Berlin)
-    const wxRes = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
-    );
-    if (!wxRes.ok) {
-      return res.status(502).json({ error: "Weather API unavailable"});
-    }
-    const wx = await wxRes.json();
-
-    // The chain, complete: both services combined into one answer
     res.json({
       trip: { from: quote.base, to: quote.quote, lat: Number(lat), lon: Number(lon) },
       exchange: { date: quote.date, rate: quote.rate },
       weather: {
-        temperatureC: wx.current?.temperature_2m,
-        weatherCode: wx.current?.weather_code,
+        temperatureC: weather.current?.temperature_2m,
+        weatherCode: weather.current?.weather_code,
       },
     });
-  } catch {
-    res.status(502).json({ error: "Upstream dependency failed" });
+  } catch (err) {
+    const isCurrencyError = err.message.includes('Currency');
+    res.status(502).json({
+      error: 'Upstream service unavailable',
+      stage: isCurrencyError ? 'exchange' : 'weather',
+      detail: err.message
+    });
   }
 });
 
