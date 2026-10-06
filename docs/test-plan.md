@@ -15,6 +15,9 @@
 | Unsupported currency | from=XXX, to=COP  | 400 + error msg | 🟢 Covered |
 | Empty currency | from=, to=EUR  | 400 + msg | 🟢 Covered |
 | Duplicated from parameter - Cardinality | from=AUD, from=AUD, to=EUR | 400 + error (reject array-like input) | 🟢 Covered |
+| Upstream unreachable (network error) | fetch mocked: rejects | 502 + error, stage 'exchange' | 🔴 TODO |
+| Upstream returns empty data (200 + no quotes) | fetch mocked: 200 + [] | 502 + "no data" detail | 🔴 TODO |
+| Upstream returns invalid JSON | fetch mocked: throws SyntaxError | 502 + parse error detail | 🔴 TODO |
 
 ## Trip Endpoint Test Scenarios
 
