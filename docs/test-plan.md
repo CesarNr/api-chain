@@ -11,13 +11,14 @@
 | Scenario | Input | Expected Result | Status |
 |----------|-------|-----------------|--------|
 | Happy path - valid currencies | from=USD, to=EUR | 200 + rate | 🟢 Covered |
+| Happy path - default values | from=USD, to=EUR | 200 + rate | 🟢 Covered |
 | Happy path - Support COP | from=USD, to=COP  | 200 + rate | 🟢 Covered |
 | Unsupported currency | from=XXX, to=COP  | 400 + error msg | 🟢 Covered |
 | Empty currency | from=, to=EUR  | 400 + msg | 🟢 Covered |
 | Duplicated from parameter - Cardinality | from=AUD, from=AUD, to=EUR | 400 + error (reject array-like input) | 🟢 Covered |
-| Upstream unreachable (network error) | fetch mocked: rejects | 502 + error, stage 'exchange' | 🔴 TODO |
-| Upstream returns empty data (200 + no quotes) | fetch mocked: 200 + [] | 502 + "no data" detail | 🔴 TODO |
-| Upstream returns invalid JSON | fetch mocked: throws SyntaxError | 502 + parse error detail | 🔴 TODO |
+| Upstream unreachable (network error) | fetch mocked: rejects | 502 + error, stage 'exchange' | 🟢 Covered |
+| Upstream returns empty data (200 + no quotes) | fetch mocked: 200 + [] | 502 + "no data" detail | 🟢 Covered |
+| Upstream returns invalid JSON | fetch mocked: throws SyntaxError | 502 + parse error detail | 🟢 Covered |
 
 ## Trip Endpoint Test Scenarios
 

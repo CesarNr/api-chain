@@ -74,8 +74,8 @@ describe('GET /exchange', () => {
 
   });
 
-    // ── Grupo 2: fault injection (fetch mocked) ──
   describe('fault injection (mocked upstream)', () => {
+
     let fetchSpy;
 
     beforeEach(() => {
@@ -113,6 +113,25 @@ describe('GET /exchange', () => {
       expect(res.body.stage).toBe('exchange');
       expect(res.body.detail).toContain('no data');
     });
+
+    it('Should return 502 when Frankfurter returns invalid json', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new SyntaxError('Unexpected token in JSON');
+        }
+      });
+
+      const res = await request(app)
+        .get('/exchange')
+        .query({ from: 'USD', to: 'COP' });
+
+      expect(res.statusCode).toBe(502);
+      expect(res.body.stage).toBe('exchange');
+      expect(res.body.detail).toContain('nexpected token');
+    });
+
   });
 });
 
