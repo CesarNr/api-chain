@@ -38,21 +38,63 @@ const isValidCurrency = (code) => /^[a-zA-Z]{3}$/.test(code);
 const isValidCoord = (value) => /^-?\d+(\.\d+)?$/.test(value);
 
 app.get("/health", async (req, res) => {
-  const checks= { currencyCatalogLoaded: supportedCurrencies !== null };
+  const startOverall = performance.now();
+  const checks= { currencyCatalogLoaded: { ok: supportedCurrencies !== null }, };
 
-  try {
-    const res = await fetch(`${FRANKFURTER_BASE}/rate/USD/EUR`);
-    checks.frankfurterApi = res.ok;
-  } catch {
-    checks.frankfurterApi = false;
+  const details = {}; // detailed info per service
+
+  const fetchExchangeRate = async () => {
+    const upstreamRes = await fetch(`${FRANKFURTER_BASE}/rates?base=COP&quotes=USD`, { signal: AbortSignal.timeout(5000) });
+    if (!upstreamRes.ok) throw new Error(`Currency API responded: ${upstreamRes.status}`);
+    await upstreamRes.arrayBuffer();
+  };
+
+  const fetchWeather = async () => {
+    const weatherRes = await fetch(`${OPEN_METEO_BASE}/forecast?latitude=-16.5&longitude=-68.15&current=temperature_2m,weather_code`, { signal: AbortSignal.timeout(5000) });
+    if ( !weatherRes.ok ) throw new Error( `Weather API responded: ${weatherRes.status}` );
+    await weatherRes.arrayBuffer();
+  };
+
+  async function withTiming(fn) {
+    const start = performance.now();
+    try {
+      await fn();
+      return { latencyMs: Math.round(performance.now() - start) };
+    } catch (err) {
+      err.latencyMs = Math.round(performance.now() - start); // adds metadata to the error
+      throw err;
+    }
   }
-  
-  const healthy = Object.values(checks).every(Boolean);
-  res.status(healthy ? 200 : 503).json({
+
+  const [exchangeResult, weatherResult] = await Promise.allSettled([
+    withTiming(fetchExchangeRate),
+    withTiming(fetchWeather),
+  ]);
+
+  details.frankfurterApi = {
+    ok: exchangeResult.status === "fulfilled",
+    ...(exchangeResult.status === "rejected" && { message: exchangeResult.reason?.message ?? "Unknown error", }),
+    latencyMs: exchangeResult.status === "fulfilled" ? exchangeResult.value.latencyMs : exchangeResult.reason?.latencyMs,
+  };
+
+  details.openMeteoApi = {
+    ok: weatherResult.status === "fulfilled",
+    ...(weatherResult.status === "rejected" && { message: weatherResult.reason?.message ?? "Unknown error" }),
+    latencyMs: weatherResult.status === "fulfilled" ? weatherResult.value.latencyMs : weatherResult.reason?.latencyMs,
+  };
+
+  const allChecks = { ...checks, ...details };
+  const healthy = Object.values(allChecks).every(d => d.ok);
+
+  const response = {
     status: healthy ? "ok" : "degraded",
-    checks,
     uptimeSeconds: Math.round(process.uptime()),
-  });
+    checks: allChecks,
+    totalLatencyMs: Math.round(performance.now() - startOverall),
+  };
+
+  res.status(healthy ? 200 : 503).json(response);
+
 });
 
 app.get("/exchange", async (req, res) => {
@@ -167,7 +209,7 @@ app.get("/trip", async (req,res) => {
 
   const fetchExchangeRate = async (from, to) => {
     const res = await fetch(`${FRANKFURTER_BASE}/rates?base=${from}&quotes=${to}`);
-    if (!res.ok) throw new Error(`Currency aPI responded: ${res.status}`);
+    if (!res.ok) throw new Error(`Currency API responded: ${res.status}`);
     const quote = ( await res.json() )[0];
     if (!quote) throw new Error(`Currency API returned no data`);
     return quote;
