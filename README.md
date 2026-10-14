@@ -162,7 +162,8 @@ Expected tests output: all tests for /health and /exchange pass (green ✔).
     ✓ should return 400 with empty coordinate (3 ms)
     ✓ should return 400 with non-numeric Latitude (3 ms)
     ✓ should return 400 with non-numeric Longitude (2 ms)```
-
+```
+```
 
 ### Manual API exploration
 See [docs/testing-curl.md](docs/testing-curl.md) for the full curl battery covering positive, negative and upstream-failure scenarios per endpoint.
