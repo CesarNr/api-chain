@@ -130,7 +130,7 @@ app.get("/exchange", async (req, res) => {
   }
 
   try {
-    const response = await fetch( `${FRANKFURTER_BASE}/rates?base=${from.toUpperCase()}&quotes=${to.toUpperCase()}` );
+    const response = await fetch( `${FRANKFURTER_BASE}/rates?base=${from.toUpperCase()}&quotes=${to.toUpperCase()}`, { signal: AbortSignal.timeout(5000) });
     if ( !response.ok ) throw new Error( `Currency API responded: ${response.status}` );
     const quote = (await response.json())[0];
     if ( !quote ) throw new Error( `Currency API returned no data for ${from.toUpperCase()}/${to.toUpperCase()}` );
@@ -208,7 +208,7 @@ app.get("/trip", async (req,res) => {
   }
 
   const fetchExchangeRate = async (from, to) => {
-    const res = await fetch(`${FRANKFURTER_BASE}/rates?base=${from}&quotes=${to}`);
+                  const res = await fetch(`${FRANKFURTER_BASE}/rates?base=${from}&quotes=${to}`, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error(`Currency API responded: ${res.status}`);
     const quote = ( await res.json() )[0];
     if (!quote) throw new Error(`Currency API returned no data`);
@@ -216,7 +216,7 @@ app.get("/trip", async (req,res) => {
   };
 
   const fetchWeather = async (lat, lon) => {
-    const res = await fetch(`${OPEN_METEO_BASE}/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`);
+    const res = await fetch(`${OPEN_METEO_BASE}/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`, { signal: AbortSignal.timeout(5000) });
     if ( !res.ok ) throw new Error( `Weather API responded: ${res.status}` );
     const weatherData = await res.json();
     if ( weatherData?.current?.temperature_2m == null ) throw new Error( `Weather API returned no data` );
