@@ -169,6 +169,20 @@ Trip | 400 | Cardinality test
 curl -s "http://localhost:3000/trip?from=AUD&to=PEN&lat=-12.04&lat=-12&lon=-77.02" | jq
 ```
 
+
+### Currencies manual test
+
+Should return 200 with all currencies available
+```bash
+curl -s "http://localhost:3000/currencies" | jq
+```
+
+Should return 200 with %s (%j) as a search value
+```bash
+curl -s "http://localhost:3000/currencies?search=COP" | jq
+```
+
+
 # App imported, not listening: function
 ```bash
 node -e "const {app} = require('./server'); console.log('App imported, not listening:', typeof app.listen)"
