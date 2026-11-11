@@ -12,6 +12,8 @@ const OPEN_METEO_BASE = "https://api.open-meteo.com/v1";
  * returns an ARRAY of objects, each with iso_code, iso_numeric, name,
  * symbol, start_date, end_date.
  */
+
+/*
 let supportedCurrencies = null;
 
 async function loadCurrencies() {
@@ -27,19 +29,40 @@ async function loadCurrencies() {
   }
 }
 
+*/
+
+let currencyCatalog = []; // array of full currency objects
+const supportedCodes = new Set(); // fast lookup for validation
+
+async function loadCurrencies() {
+  try {
+    const currencyRes = await fetch(`${FRANKFURTER_BASE}/currencies`, { signal: AbortSignal.timeout(5000) });
+    if(!currencyRes.ok) throw new Error(`Currency API responded: ${currencyRes.status}`);
+    const currencyData = await currencyRes.json();
+    currencyCatalog = currencyData.map((c) => ({
+      ...c,
+      iso_code: c.iso_code.toUpperCase(),
+    }));
+    for (const c of currencyCatalog) supportedCodes.add(c.iso_code);
+    console.log(`Loaded ${currencyCatalog.length} supported currencies.`);
+  } catch (err) {
+    console.error("Could not load currency catalog", err.message);
+    // Catalog stays empty on failure (fetch error, bad status, or 5s timeout); /health reports degraded.
+  }
+}
+
 const currenciesReady = loadCurrencies();
 
 const isSupported = (code) => 
   typeof code === "string" &&
-    supportedCurrencies !== null &&
-    supportedCurrencies.includes(code.toUpperCase());
+    supportedCodes.has(code.toUpperCase());
 
 const isValidCurrency = (code) => /^[a-zA-Z]{3}$/.test(code);
 const isValidCoord = (value) => /^-?\d+(\.\d+)?$/.test(value);
 
 app.get("/health", async (req, res) => {
   const startOverall = performance.now();
-  const checks= { currencyCatalogLoaded: { ok: supportedCurrencies !== null }, };
+  const checks= { currencyCatalogLoaded: { ok: supportedCodes !== 0 }, };
 
   const details = {}; // detailed info per service
 
@@ -243,6 +266,26 @@ app.get("/trip", async (req,res) => {
       detail: err.message
     });
   }
+});
+
+app.get("/currencies", (req,res) => {
+  if (currencyCatalog.length === 0) {
+    return res.status(503).json({ error: 'Currency catalog not available' });
+  }
+
+  const { search } = req.query;
+
+  let currencies = currencyCatalog;
+  if (search) {
+    const needle = String(search).toLowerCase();
+    currencies = currencyCatalog.filter(
+      (c) =>
+        c.name.toLowerCase().includes(needle) ||
+        c.iso_code.toLowerCase().includes(needle)
+    );
+  }
+
+  res.status(200).json({ count: currencies.length, currencies });
 });
 
 // Export the app for testing; start the server only when run as a script.

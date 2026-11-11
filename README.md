@@ -181,6 +181,6 @@ See [docs/testing-curl.md](docs/testing-curl.md) for the full curl battery cover
   - [x] Fault injection tests (mocked upstream failures)
 - [x] GitHub Actions CI pipeline
 - [x] Degraded health monitoring with partial failure detection
-- [ ] Expose /currencies endpoint for input discovery
+- [X] Expose /currencies endpoint for input discovery
 - [X] Add upstream timeouts to /exchange and /trip endpoints
 - [ ] Retry logic for transient upstream failures
