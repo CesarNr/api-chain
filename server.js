@@ -268,12 +268,25 @@ app.get("/trip", async (req,res) => {
   }
 });
 
+// Whitelist: letters (Unicode), digits, spaces, hyphens.
+// 30 chars comfortably exceeds any reasonable search term; the bound
+// exists to cap abusive payloads
+const SEARCH_PATTERN = /^[\p{L}\p{N} \-]{1,30}$/u;
+
 app.get("/currencies", (req,res) => {
   if (currencyCatalog.length === 0) {
     return res.status(503).json({ error: 'Currency catalog not available' });
   }
 
   const { search } = req.query;
+
+  if (Array.isArray(search)) {
+    return res.status(400).json({ error: "Parameter 'search' must be a single value" });
+  }
+
+  if (!SEARCH_PATTERN.test(search.trim())) {
+    return res.status(400).json({ error: `Invalid input in 'search': ${search} Try a currency name or ISO code, e.g. 'euro' or 'EUR'.` });
+  }
 
   let currencies = currencyCatalog;
   if (search) {
