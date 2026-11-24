@@ -269,8 +269,7 @@ app.get("/trip", async (req,res) => {
 });
 
 // Whitelist: letters (Unicode), digits, spaces, hyphens.
-// 30 chars comfortably exceeds any reasonable search term; the bound
-// exists to cap abusive payloads
+// 30 chars comfortably exceeds any reasonable search term; the bound exists to cap abusive payloads
 const SEARCH_PATTERN = /^[\p{L}\p{N} \-]{1,30}$/u;
 
 app.get("/currencies", (req,res) => {
