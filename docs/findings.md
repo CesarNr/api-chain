@@ -132,6 +132,17 @@ A running log of defects, limitations and design findings discovered while devel
 - **Actions:** Added a cardinality check (via `Array.isArray`) in both services as the first validation layer for all four parameters, before presence and format checks. Now duplicated parameters receive a specific error: "Duplicate parameter 'X': expected single value, received N".
 
 ---
+## 2026-11-23
+
+### 14. Error in /currencies when the 'search' parameter is not sent - FIXED
+- Severity: Low (query/exploration-only service; no data involved).
+- Found While: CI run, right after pushing the new input validations for the /currencies handler.
+- Details: The push turned CI red with a failure in /currencies. Code review showed the new validation chain had no path for requests without 'search', code crashed at `search.trim()` with a TypeError, surfacing as a 500. The regression was caught by the existing happy-path test ("returns the full enriched catalog when no filter is given").
+- Impact: Low. All other services and tests remained green. /currencies stayed partially functional only for requests that included a 'search' parameter.
+- Root cause: Shape assumption, the validations assumed the parameter is always present, ignoring the "absent" state.
+- Actions: Fixed the handler by adding an early conditional path that returns the full catalog when 'search' is undefined, before any type or content checks run.
+
+---
 ## Design findings / technical debt (backlog)
 
 ### 1. No retry or refresh mechanism for the startup catalog
