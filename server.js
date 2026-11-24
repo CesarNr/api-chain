@@ -280,6 +280,12 @@ app.get("/currencies", (req,res) => {
 
   const { search } = req.query;
 
+  // If no search param at all then full catalog (the happy default)
+  if (search === undefined) {
+    return res.status(200).json({ count: currencyCatalog.length, currencies: currencyCatalog });
+  }
+
+  // Type check: HTTP parameter pollution
   if (Array.isArray(search)) {
     return res.status(400).json({ error: "Parameter 'search' must be a single value" });
   }
@@ -288,15 +294,12 @@ app.get("/currencies", (req,res) => {
     return res.status(400).json({ error: `Invalid input in 'search': ${search} Try a currency name or ISO code, e.g. 'euro' or 'EUR'.` });
   }
 
-  let currencies = currencyCatalog;
-  if (search) {
-    const needle = String(search).toLowerCase();
-    currencies = currencyCatalog.filter(
-      (c) =>
-        c.name.toLowerCase().includes(needle) ||
+  const needle = search.trim().toLowerCase();
+  const currencies = currencyCatalog.filter(
+    (c) =>
+      c.name.toLowerCase().includes(needle) ||
         c.iso_code.toLowerCase().includes(needle)
-    );
-  }
+  );
 
   res.status(200).json({ count: currencies.length, currencies });
 });
