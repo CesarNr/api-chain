@@ -1,11 +1,9 @@
 # api-chain 🔗
   [![CI](https://github.com/CesarNr/api-chain/actions/workflows/ci.yml/badge.svg)](https://github.com/CesarNr/api-chain/actions/workflows/ci.yml)
 
-A small Node.js service that chains public APIs: calls one, validates the
-response, and feeds data into the next — a mini service orchestrator,
-built with its own automated test suite (Jest + Supertest).
+A small Node.js service that chains public APIs: calls one, validates the response, and feeds data into the next, a mini service orchestrator, built with its own automated test suite (Jest + Supertest).
 
-**Status:** 🚧 Work in progress — rebuilt as a portfolio project.
+**Status:** 🚧 Work in progress - rebuilt as a portfolio project.
 
 ## Goals
 - Build a REST service with Express
@@ -39,37 +37,65 @@ Expected output in terminal:
 api-chain listening on http://localhost:3000
 Loaded 165 supported currencies
 ```
+Note: number of supported currencies may vary, value is illustrative.
 
-### Verify it is alive
+### Available endpoints
+
+1. `/health`, reports the current status of the service and its upstream dependencies (Frankfurter and Open-Meteo). Each check returns `ok` with its latency in ms; `currencyCatalogLoaded` confirms the currency catalog was fetched at startup, all other endpoints depend on it.
+   Useful to check before running the manual test battery, or after a failure, to confirm whether the problem is local or upstream. Returns `200` with `"status": "ok"` when everything is healthy, or `503` with `"status": "degraded"` when any check fails.
+
 ```bash
-curl -s "http://localhost:3000/health" | jq
+curl -s http://localhost:3000/health | jq
 ```
 
-Expected output (values are illustrative — rates change daily):
+Expected output (values are illustrative):
 ```bash
 {
   "status": "ok",
-  "uptimeSeconds": 33,
+  "uptimeSeconds": 147,
   "checks": {
     "currencyCatalogLoaded": {
       "ok": true
     },
     "frankfurterApi": {
       "ok": true,
-      "latencyMs": 840
+      "latencyMs": 211
     },
     "openMeteoApi": {
       "ok": true,
-      "latencyMs": 1592
+      "latencyMs": 318
     }
   },
-  "totalLatencyMs": 1594
+  "totalLatencyMs": 320
 }
 ```
 
-### Available endpoints
+Example of a degraded response (HTTP 503), in this case Frankfurter is unreachable, so `/exchange`, `/trip`, `/currencies` would fail even though the service itself is running:
 
-1. `/exchange`, return exchange rate given two currencies (USD to EUR by default if no parameters are specified in HTTP query). Currency codes follow the ISO 4217 standard.
+```bash
+{
+  "status": "degraded",
+  "uptimeSeconds": 2,
+  "checks": {
+    "currencyCatalogLoaded": {
+      "ok": true
+    },
+    "frankfurterApi": {
+      "ok": false,
+      "message": "Frankfurter network error",
+      "latencyMs": 1
+    },
+    "openMeteoApi": {
+      "ok": true,
+      "latencyMs": 0
+    }
+  },
+  "totalLatencyMs": 1
+}
+```
+Note: captured from the fault-injection test suite, where upstreams are mocked, hence the near-zero latencies.
+
+2. `/exchange`, return exchange rate given two currencies (USD to EUR by default if no parameters are specified in HTTP query). Currency codes follow the ISO 4217 standard.
 
 ```bash
 curl -s "http://localhost:3000/exchange" | jq
@@ -79,7 +105,7 @@ or
 curl -s "http://localhost:3000/exchange?from=USD&to=COP" | jq
 ```
 
-Expected result (values are illustrative — rates change daily):
+Expected result (values are illustrative - rates change daily):
 ```bash
 {
   "date": "2026-09-16",
@@ -90,7 +116,7 @@ Expected result (values are illustrative — rates change daily):
 }
 ```
 
-2. `/trip` given two currencies and a coordinate in the signed decimal standard format (WGS 84 / EPSG:4326) (e.g. -16.5, -68.15 for La Paz, Bolivia) you will receive the exchange rate and temperature of the coordinate. ({ from = "USD", to = "EUR", lat = "52.52", lon = "13.41" } by default if arguments not specified on the HTTP request).
+3. `/trip` given two currencies and a coordinate in the signed decimal standard format (WGS 84 / EPSG:4326) (e.g. -16.5, -68.15 for La Paz, Bolivia) you will receive the exchange rate and temperature of the coordinate. ({ from = "USD", to = "EUR", lat = "52.52", lon = "13.41" } by default if arguments not specified on the HTTP request).
 
 ```bash
 curl -s "http://localhost:3000/trip?from=USD&to=COP&lat=4.60&lon=-74.08" | jq
@@ -100,7 +126,7 @@ or
 curl -s "http://localhost:3000/trip" | jq
 ```
 
-Expected output (values are illustrative — rates change daily):
+Expected output (values are illustrative - rates change daily):
 ```bash
 {
   "trip": {
@@ -120,50 +146,67 @@ Expected output (values are illustrative — rates change daily):
 }
 ```
 
+
+4. `/currencies` returns the full supported-currency catalog used by the service (source: Frankfurter v2). Each entry includes the ISO code and numeric code, name, symbol, type, and validity dates. Optional `?search=` filters by name or ISO code (case-insensitive).
+
+```bash
+curl -s "http://localhost:3000/currencies" | jq '.count'
+```
+Expected output (catalog contents may change with the upstream source):
+```bash
+200
+```
+
+```bash
+curl -s "http://localhost:3000/currencies?search=usd" | jq '{ count, currencies }'
+```
+Expected output (catalog contents may change with the upstream source):
+```bash
+{
+  "count": 3,
+  "currencies": [
+    {
+      "iso_code": "USD",
+      "iso_numeric": "840",
+      "name": "United States Dollar",
+      "symbol": "$",
+      "type": "currency",
+      "start_date": "1948-06-21",
+      "end_date": "2026-11-24"
+    },
+    {
+      "iso_code": "USDC",
+      "iso_numeric": null,
+      "name": "USD Coin",
+      "symbol": "USDC",
+      "type": "crypto",
+      "start_date": "2018-09-28",
+      "end_date": "2026-11-23"
+    },
+    {
+      "iso_code": "USDT",
+      "iso_numeric": null,
+      "name": "Tether",
+      "symbol": "USDT",
+      "type": "crypto",
+      "start_date": "2014-10-06",
+      "end_date": "2026-11-23"
+    }
+  ]
+}
+```
+Note: /currencies is intentionally an exploratory endpoint: breadth of matches is a feature, not a defect. Searching "USD" returning USD, USDC and USDT gives discoverability.
+
 ### Running the automated test suite
 ```bash
 npm test
 ```
 
-Expected tests output: all tests for /health and /exchange pass (green ✔).
-```bash
- PASS  tests/health.test.js
-  GET /health
-    integration
-      ✓ should return 200 if all checks pass (1055 ms)
-    fault injection (mocked upstream)
-      ✓ should return 503 when Frankfurter is down (15 ms)
-      ✓ should return 503 when open-meteo is down (4 ms)
-      ✓ should return 503 with all checks down when both upstreams fail (5 ms)
+The full suite passes green (✔), and GitHub Actions runs it again on every push, so the CI badge at the top of this page always reflects the current state. Tests cover each endpoint at three levels:
 
- PASS  tests/exchange.test.js
-  GET /exchange
-    integration (live upstream)
-      ✓ should return 200 with valid currencies (524 ms)
-      ✓ should apply defaults when no parameters given (99 ms)
-      ✓ should support USD → COP (95 ms)
-    input validation
-      ✓ should return 400 for unsupported currency XXX (4 ms)
-      ✓ should return 400 for empty currency code (3 ms)
-      ✓ should reject duplicated from parameter (3 ms)
-    fault injection (mocked upstream)
-      ✓ should return 502 when Frankfurter is unreachable (7 ms)
-      ✓ should return 502 when Frankfurter returns 200 with no data (7 ms)
-      ✓ Should return 502 when Frankfurter returns invalid json (8 ms)
-
- PASS  tests/trip.test.js
-  GET /trip
-    ✓ should return 200 with valid input (1637 ms)
-    ✓ should apply defaults when no parameters given (429 ms)
-    ✓ should return 400 with invalid currency from (5 ms)
-    ✓ should return 400 with empty currency to (3 ms)
-    ✓ should return 400 with Out-of-range lat (3 ms)
-    ✓ should return 400 with Out-of-range lon (4 ms)
-    ✓ should return 400 with empty coordinate (3 ms)
-    ✓ should return 400 with non-numeric Latitude (3 ms)
-    ✓ should return 400 with non-numeric Longitude (2 ms)
-```
-
+- Integration (live upstream): real requests against Frankfurter and Open-Meteo, asserting status codes and response contracts.
+- Input validation: bad currency codes, out-of-range coordinates, duplicated parameters, and non-whitelisted search input.
+- Fault injection (mocked upstream): upstream failures simulated with a mocked fetch, covering unreachable APIs, empty responses, and invalid JSON. These verify that the service degrades gracefully with 502/503 responses instead of crashing.
 
 ### Manual API exploration
 See [docs/testing-curl.md](docs/testing-curl.md) for the full curl battery covering positive, negative and upstream-failure scenarios per endpoint.
@@ -177,10 +220,13 @@ See [docs/testing-curl.md](docs/testing-curl.md) for the full curl battery cover
 - [x] Input validation with allowlist patterns
 - [x] Automated testing suite (Jest + Supertest)
   - [x] Unit tests for validation logic
-- [x] Integration tests against live upstreams
-  - [x] Fault injection tests (mocked upstream failures)
+  - [x] Integration tests against live upstreams (/health, /exchange, /trip, /currencies)
+  - [x] Fault injection tests (mocked upstream failures) — /health, /exchange
+  - [ ] Fault injection tests for /currencies (mocked upstream)
 - [x] GitHub Actions CI pipeline
 - [x] Degraded health monitoring with partial failure detection
-- [X] Expose /currencies endpoint for input discovery
-- [X] Add upstream timeouts to /exchange and /trip endpoints
+- [x] Expose /currencies endpoint for input discovery
+- [x] Add upstream timeouts to /exchange and /trip endpoints
+- [x] Validate /currencies search input (types, whitelist, empty)
+- [ ] Rate limiting for public endpoints
 - [ ] Retry logic for transient upstream failures

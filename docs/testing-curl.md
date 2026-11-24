@@ -85,7 +85,7 @@ Only HTTP
 curl -s -o /dev/null -w '%{http_code}\n' http://localhost:3000/health
 ```
 
-Health jq
+### Health manual test
 ``` bash
 curl -s http://localhost:3000/health | jq
 ```
